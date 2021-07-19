@@ -1,10 +1,10 @@
-import time
-import gspread
-gs = gspread.service_account()
+# import time
+# import gspread
+# gs = gspread.service_account()
 
 # Open a sheet from a spreadsheet in one go
-top=5
-woied =11145
+# top=5
+# woied =11145
 # print(f'Fetching: {time.strftime("%X")}')
 # wks = gs.open("User Setting").sheet1
 # wks.append_row([top,woied])
