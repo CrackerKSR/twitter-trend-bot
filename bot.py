@@ -54,7 +54,7 @@ sett = Setting()
 
 @client.on(events.InlineQuery)
 async def handler(event):
-    print(f'event {time.strftime("%X")}')
+#     print(f'event {time.strftime("%X")}')
     query_text = event.query.query
     builder = event.builder
     sender = event.sender
