@@ -33,7 +33,7 @@ class Setting():
 		super(Setting, self).__init__()
 # 		print('➿ check db...id is ')
 		# x = Setting.fetch(user_id)
-		self.woeid = woied
+		self.woeid = woeid
 		self.country = country
 		# self.top = 10	
 		# setAttr()
