@@ -29,9 +29,9 @@ woeid = mydb['woeid']
 
 class Setting():
 
-	def __init__(self,location=1,country='world'):
+	def __init__(self,woeid=1,country='world'):
 		super(Setting, self).__init__()
-		print('➿ check db...id is ')
+# 		print('➿ check db...id is ')
 		# x = Setting.fetch(user_id)
 		self.woeid = woied
 		self.country = country
