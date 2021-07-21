@@ -15,7 +15,8 @@ def get_wid(query,user_id = None):
 	findin = ''
 	w = None
 	cc = False
-
+	if 'world' in query:
+		return {'woeid':1,'name':'World','country':'World'}
 	c = query.split('.') if '.' in query else query
 	# print(f'{c=}')
 	if (c.__class__ is list):
@@ -42,7 +43,7 @@ def get_wid(query,user_id = None):
 		w = wid.find_one({findin:reg},{'woeid':1,'name':1,'country':1})
 	
 	# print(f' 1️⃣  {w=}' )
-	
+		
 	if w is not None:
 		return w
 	else:
