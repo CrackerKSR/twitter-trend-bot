@@ -6,7 +6,7 @@ from telethon.tl.custom import inlineresult, inlinebuilder
 from telethon.tl.custom.button import Button
 from telethon.tl.types import InputWebDocument,DocumentAttributeImageSize, DocumentAttributeFilename 
 from telethon.client.dialogs import DialogMethods
-
+import text
 api_id = 936087
 api_hash = '5f6f172f2107d79ed3e2929075a78058'
 bot_token = '1945967714:AAFiB04cXAn4pnwaQzTc4q78YoNvDSvw2xQ'
@@ -49,59 +49,42 @@ api = tweepy.API(auth)
 #     print(f'#{rank}.{name}')
 
 
-from UserSetting import Setting
-sett = Setting()
+import twitter
+import mongo
+import re
+pattern = re.compile(r'([aA-zZ]{2}).([aA-zZ]{3})')
 
 @client.on(events.InlineQuery)
 async def handler(event):
-#     print(f'event {time.strftime("%X")}')
-    query_text = event.query.query
-    builder = event.builder
-    sender = event.sender
-    
-    Pref = Setting()
-    Pref.fetch(sender.id)
-    wid = Pref.woeid
-    country = Pref.country
-    # lat = 19.075983
-    # lon = 72.877655
-    # location = api.trends_closest(lat,lon)
-    # print(location)
-
-
-    # print(f'event.answer {time.strftime("%X")}')
-    
-    if '-loc' in query_text:
-        results = [await current_location(event)]
-    elif '1' in query_text:
-        results = [i async for i in fetch(builder,1,"WORLD")]
-        country = 'World' 
-    elif 'in' in query_text:
-        results = [i async for i in fetch(builder,23424848,"India")]
-        country = 'India' 
-    elif 'mum' in query_text:
-        results = [i async for i in fetch(builder,2295411,"Mumbai")]    
-        country = 'Mumbai' 
-    elif 'nag' in query_text:
-        results = [i async for i in fetch(builder,2282863,"Nagpur")]
-        country = 'Nagpur' 
-    elif 'del' in query_text:
-        results = [i async for i in fetch(builder,20070458,"Delhi9")]
-        country = 'Delhi9' 
-    elif 'sur' in query_text:
-        results = [i async for i in fetch(builder,2295405,"Surat")]
-        country = 'Surat' 
-    elif 'hyd' in query_text:
-        results = [i async for i in fetch(builder,2295414,"Hyderabad")]
-        country = 'Hyderabad' 
+    #     print(f'event {time.strftime("%X")}')
+    query, builder, sender = event.query.query, event.builder, event.sender 
+    wid = 1
+    if query.strip() == '':
+        x = mongo.pref_exist(sender.id)
+        # print(f'if {x=}')
     else:
-        results = [i async for i in fetch(builder,wid,country)]
+        x = mongo.get_wid(query, sender.id)
+        # print(f'else {x=}')
+    location = ''
+    if x is not None:
+        wid = x['woeid']
+        if x["name"] in x['country']:
+            location = f'{x["country"]}'
+        else:
+            location = f'{x["name"]},{x["country"]}'
+    else:
+        wid = 1
 
+    trends = twitter.get_trends(x['woeid'])
+        # trends = twitter.trends(query_text, sender.id)
+    results = [i async for i in build(builder,trends,location)]
+    
+    # results = [i async for i in fetch(builder,wid,country)]
     await event.answer(
         results=results,
         # cache_time = 10,
         # next_offset = '4',
-        switch_pm=f"Trending in {country} | ⚙Settings",
+        switch_pm=f"Trending in {location} | ⚙Settings",
         switch_pm_param='setting'
         )
     # print(f'answered on tele {time.strftime("%X")}')
@@ -113,15 +96,11 @@ async def handler(event):
 
 @client.on(events.NewMessage(pattern="/start"))
 async def start(event):
+    # print(event)
     # if 'setting' in event.message.message:
         # await set_location(event)
-    await event.reply('type bot username to see current trends on twitter, also you can type commands to change the location on the go. \n currently supported commands are'\
-        f'world: {bot} 1 '\
-        f'india: {bot} in'\
-        f'mumbai: {bot} mum'\
-        f'hyderabad: {bot} hyd'\
-        f'similary type first 3 letters for (nag)pur, (sur)at, (del)hi \n\n'\
-        f'\n Check the top 10 trends anywhere on telegram*')
+    bot = "ttrend_bot"
+    await event.reply(text.start)
 
 
 @client.on(events.NewMessage(pattern="/set_location"))
@@ -145,7 +124,7 @@ async def set_location(event):
     # await event.reply('send woeid or country name')
 # @client.on(events.NewMessage)
 # async def start(event):
-    print('change')
+    # print('change')
 #     await event.reply('send woeid or country name')
 
 # Defs
@@ -173,34 +152,16 @@ async def current_location(event):
     return re
 
 
-async def fetch(builder,wid,country):
-    # print(f'in fetch {time.strftime("%X")}')
-    # check user id and its preferences
-    # pref = setting.get(id)
-    # woeid = pref.User.woeid
-    # top = pref.User.top
-    # woeid = pre.manual.woeid
-    # top = pref.manual.top
-    wid = wid
-    country = country
-    # print(f'{wid=} {country=}')
-    tr = api.trends_place(wid) # mumbai 2295411) #Nagpur- 2282863
-    # print(tr[0]['locations'][0])
-    t= [[i for i in t['trends']] for t in tr]
-
-    # for i in t:
-    #     i['url']
-    # print(f'💙 {type(t)} - {t}')
-
-    # print(f'after fetch {time.strftime("%X")}')
+async def build(builder,trends,location):
+    
     rank = 0
-    for i in t[0]:
+    for t in trends[0]:
         rank += 1
         yield builder.article(
-            title = f'{rank} : {i["name"]}',
-            description = f"Trending in {country} \nClick to view ",
-            text=f'{rank} : {i["name"]}  \n\n[View]({i["url"]})',
-            url = i['url'],
+            title = f'{rank}: {t["name"]}',
+            description = f"Trending in {location} \nClick to view ",
+            text=f'{rank} : {t["name"]}  \n\n[View]({t["url"]})',
+            url = t['url'],
             thumb=InputWebDocument(
                 url='http://assets.stickpng.com/images/580b57fcd9996e24bc43c53e.png',
                 size=720,
@@ -211,6 +172,31 @@ async def fetch(builder,wid,country):
             )
         if rank == 10:
             break
+
+
+    # wid = wid
+    # country = country
+    # tr = api.trends_place(wid) # mumbai 2295411) #Nagpur- 2282863
+    # t= [[i for i in t['trends']] for t in tr]
+
+    # rank = 0
+    # for i in t[0]:
+    #     rank += 1
+    #     yield builder.article(
+    #         title = f'{rank} : {i["name"]}',
+    #         description = f"Trending in {country} \nClick to view ",
+    #         text=f'{rank} : {i["name"]}  \n\n[View]({i["url"]})',
+    #         url = i['url'],
+    #         thumb=InputWebDocument(
+    #             url='http://assets.stickpng.com/images/580b57fcd9996e24bc43c53e.png',
+    #             size=720,
+    #             mime_type='image/png',
+    #             attributes=[DocumentAttributeImageSize(w=100, h=100)]
+    #             ),
+    #         buttons=Button.url('Click here to visit new bot','example.com')
+    #         )
+    #     if rank == 10:
+    #         break
 
     # print(f'end loop {time.strftime("%X")}')
 
