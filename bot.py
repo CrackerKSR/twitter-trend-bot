@@ -7,17 +7,17 @@ from telethon.tl.custom.button import Button
 from telethon.tl.types import InputWebDocument,DocumentAttributeImageSize, DocumentAttributeFilename 
 from telethon.client.dialogs import DialogMethods
 import text
-api_id = 936087
-api_hash = '5f6f172f2107d79ed3e2929075a78058'
-bot_token = '1945967714:AAFiB04cXAn4pnwaQzTc4q78YoNvDSvw2xQ'
+api_id = 
+api_hash = 
+bot_token = 
 
 client = TelegramClient('telethon_session', api_id, api_hash)
 client.start(bot_token=bot_token)
 
-consumer_key = 'BaD753vog7rygxpLtadm6bBpe'
-consumer_secret = 'fR3IlwDumht4nV3HpBWQPxV1eTmyOXfA9NRSweuxBuHwAySgw7'
-access_token = '2532009798-HdjyStZf5mY6VrQKiKkKA88INjghnGkHG2qovfU'
-access_secret = 'ieu9aJcxwfP6w27Y5wU1xe8zuTi2G4kP6l9NKTtNe5FRS'
+consumer_key = 
+consumer_secret = 
+access_token = 
+access_secret = 
 
 auth = OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_secret)
